@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 
 import json
-from flask import request, Response
+from flask import request, Response, make_response
 from system import app
 from controllers.api import APIController as api
 from controllers.user import UserController as user
 from controllers.rate_limiter import RateLimiterController as limit
 from controllers.logger import LoggerController as logger
 
-def generateResponse(status_code=200, status="OK", content_type="application/json", cache_control="no-cache", message=""):
+def generateResponse(status="200 OK", content_type="application/json", cache_control="no-cache", message=""):
     response = Response()
-    response.status_code = status_code
     response.status = status
     response.content_type = content_type
     # response.cache_control = cache_control
-    response.data = message
+    response.response = message
     return response
 
 @app.route('/api', methods=['GET', 'POST', 'PUT', 'DELETE'])
@@ -29,33 +28,33 @@ def run_request():
                 limitter.user = api_key
 
                 if limitter.check_limit() < 10:
+                    limitter.update_limit()
+
                     api_object = api()
                     read = request.args.get('read')
 
                     if read.lower() == "short":
                         api_object.long_url = url
-                        result = api_object.readUrl("long")
+                        result = api_object.readUrl("short")
                     elif read.lower() == "long":
                         api_object.short_url = url
-                        result = api_object.readUrl("short")
+                        result = api_object.readUrl("long")
                     else:
                         msg = "<html><head><title>Bad Request</title></head><body><h1>Bad Request</h1><p>Wrong value assigned to read parameter</p></body></html>"
-                        response = generateResponse(400, "Bad Request", "application/octet-stream", message=msg)
+                        response = generateResponse("400 Bad Request", "application/html", message=msg)
                     
                     if result:
                         msg = json.dumps({'result': result})
                         response = generateResponse(cache_control="public", message=msg)
                     else:
                         msg = "<html><head><title>Not Found</title></head><body><h1>Not Found</h1><p>Url does not exists</p></body></html>"
-                        response = generateResponse(404, "Not Found", "application/octet-stream", message=msg)
-                    
-                    limitter.update_limit()
+                        response = generateResponse("404 Not Found", "application/html", message=msg)
                 else:
                     msg = "<html><head><title>Too Many Requests</title></head><body><h1>Too Many Requests</h1><p>Only 10 requests per day per user are allowed</p></body></html>"
-                    response = generateResponse(429, "Too Many Requests", "application/octet-stream", message=msg)
+                    response = generateResponse("429 Too Many Requests", "application/html", message=msg)
             else:
                 msg = "<html><head><title>Forbidden</title></head><body><h1>Forbidden</h1><p>User do not have permission to access this resource</p></body></html>"
-                response = generateResponse(403, "Forbidden", "application/octet-stream", message=msg)
+                response = generateResponse("403 Forbidden", "application/html", message=msg)
             return response
         
         if request.method == 'POST':

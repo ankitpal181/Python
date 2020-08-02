@@ -13,7 +13,7 @@ class RateLimiterController():
             if limit:
                 return limit
             else:
-                memory["limits"][self.user] = 1
+                memory["limits"][self.user] = 0
                 with open("system/temp_memory.json", "w") as file:
                     file.write(json.dumps(memory))
                 return 1
