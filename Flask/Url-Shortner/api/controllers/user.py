@@ -1,4 +1,5 @@
-from system import db, bcrypt
+import bcrypt
+from system import db
 from models.users import User
 from controllers.logger import LoggerController as logger
 
@@ -6,13 +7,14 @@ class UserController():
     def __init__(self):
         self.email = ""
         self.password = ""
+        self.api_key = ""
     
     def create_user(self):
         user = User.query.filter_by(email=self.email).first()
         if user:
             return "Email already exists"
         if self.email == True:
-            self.password = bcrypt.generate_password_hash(self.password)
+            # self.password = bcrypt.generate_password_hash(self.password)
             self.password = bcrypt.hashpw(self.password, bcrypt.gensalt())
             user = User(email=self.email, password=self.password)
             db.session.add(user)

@@ -8,4 +8,4 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///url_shortner.db"
 # app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:Ankitpal*1828542146@localhost:3306/url_shortner"
 db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
+# bcrypt = Bcrypt(app)
